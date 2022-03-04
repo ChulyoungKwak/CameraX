@@ -44,7 +44,6 @@ class MainActivity : BaseActivity() {
     private var cameraController: CameraControl?=null
     private var cameraProvider: ProcessCameraProvider? = null
     private var cameraInfo: CameraInfo?=null
-//    private var slider: Slider? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,9 +78,7 @@ class MainActivity : BaseActivity() {
 
     private fun setView() {
         setUpCamera()
-        binding.btnTakePicture.setOnClickListener{
-            requirePermissions(arrayOf(Manifest.permission.CAMERA), PERM_CAMERA)
-        }
+        requirePermissions(arrayOf(Manifest.permission.CAMERA), PERM_CAMERA)
     }
 
     private fun openCamera() {
@@ -249,14 +246,14 @@ class MainActivity : BaseActivity() {
 
         // Preview
         preview = Preview.Builder()
-            .setTargetAspectRatio(screenAspectRatio)
+//            .setTargetAspectRatio(screenAspectRatio)
             .build()
             .also {
                 it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
             }
         //ImageCapture
         imageCapture = ImageCapture.Builder()
-            .setTargetAspectRatio(screenAspectRatio)
+//            .setTargetAspectRatio(screenAspectRatio)
             .build()
         // Must unbind the use-cases before rebinding them
         cameraProvider.unbindAll()
