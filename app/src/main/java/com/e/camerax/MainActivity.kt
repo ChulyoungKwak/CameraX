@@ -41,7 +41,7 @@ class MainActivity : BaseActivity(), SensorEventListener {
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
     private var cameraResolution: Int = AspectRatio.RATIO_4_3
     private var cameraSizeWidth: Int = 1280
-    private var cameraSizeHeight: Int = 7
+    private var cameraSizeHeight: Int = 720
 
     private val PERM_STORAGE = 99
     private val PERM_CAMERA = 100
@@ -144,16 +144,25 @@ class MainActivity : BaseActivity(), SensorEventListener {
                     brightRadioGroup.setOnCheckedChangeListener { _, checkedId ->
                         when (checkedId) {
                             R.id.radioBtnBright1 -> {
-                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-1)}
-                                Log.d(TAG, "Set exposure compensation index -1")
+                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-2)}
+                                Log.d(TAG, "Set exposure compensation index -2")
                             }
                             R.id.radioBtnBright2 -> {
+                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-1)}
+                                Log.d(TAG, "Set exposure compensation index to -1")
+                            }
+                            R.id.radioBtnBright3 -> {
                                 cameraInfo?.let{cameraController?.setExposureCompensationIndex(0)}
                                 Log.d(TAG, "Set exposure compensation index to 0")
                             }
-                            R.id.radioBtnBright3 -> {
+
+                            R.id.radioBtnBright4 -> {
                                 cameraInfo?.let{cameraController?.setExposureCompensationIndex(1)}
-                                Log.d(TAG, "Set exposure compensation index to +1")
+                                Log.d(TAG, "Set exposure compensation index to 1")
+                            }
+                            R.id.radioBtnBright5 -> {
+                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(2)}
+                                Log.d(TAG, "Set exposure compensation index to +2")
                             }
                         }
                     }
@@ -161,8 +170,8 @@ class MainActivity : BaseActivity(), SensorEventListener {
                     resolutionRadioGroup.setOnCheckedChangeListener { _, checkedId ->
                         when (checkedId) {
                             R.id.radioBtnResolution1 -> {
-                                cameraSizeWidth = 1280
-                                cameraSizeHeight = 720
+                                cameraSizeWidth = 720
+                                cameraSizeHeight = 1280
 //                                cameraResolution = AspectRatio.RATIO_16_9
                                 bindCameraUseCases()
                                 Log.d(TAG, "Set aspect ratio 16:9")
@@ -170,8 +179,8 @@ class MainActivity : BaseActivity(), SensorEventListener {
 
                             R.id.radioBtnResolution2 -> {
 //                                cameraResolution = AspectRatio.RATIO_4_3
-                                cameraSizeWidth = 640
-                                cameraSizeHeight = 480
+                                cameraSizeWidth = 480
+                                cameraSizeHeight = 640
                                 bindCameraUseCases()
                                 Log.d(TAG, "Set aspect ratio 4:3")
                             }
