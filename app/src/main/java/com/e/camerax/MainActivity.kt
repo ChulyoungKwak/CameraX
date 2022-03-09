@@ -2,14 +2,22 @@ package com.e.camerax
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Size
 import android.view.WindowInsets
 import android.widget.ImageButton
+import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.core.Camera as Camera
@@ -27,10 +35,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class MainActivity : BaseActivity() {
+class MainActivity : BaseActivity(), SensorEventListener {
     private lateinit var binding: ActivityMainBinding
 
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
+    private var cameraResolution: Int = AspectRatio.RATIO_4_3
+    private var cameraSizeWidth: Int = 1280
+    private var cameraSizeHeight: Int = 7
 
     private val PERM_STORAGE = 99
     private val PERM_CAMERA = 100
@@ -45,12 +56,31 @@ class MainActivity : BaseActivity() {
     private var cameraProvider: ProcessCameraProvider? = null
     private var cameraInfo: CameraInfo?=null
 
+    private lateinit var sensorManager: SensorManager
+    private var mLight: Sensor? = null
+    private var lightValue: Float? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         requirePermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),PERM_STORAGE)
+
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        mLight = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mLight?.also { light ->
+            sensorManager.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(this)
     }
 
     override fun permissionGranted(requestCode: Int) {
@@ -88,20 +118,6 @@ class MainActivity : BaseActivity() {
         outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
 
-        binding.btnTorch.setOnClickListener{
-            Log.d(TAG,cameraInfo?.torchState?.value.toString())
-            when(cameraInfo?.torchState?.value){
-                TorchState.ON -> {
-                    cameraController?.enableTorch(false)
-                    binding.btnTorch.text="Torch ON"
-                }
-                TorchState.OFF -> {
-                    cameraController?.enableTorch(true)
-                    binding.btnTorch.text="Torch OFF"
-                }
-            }
-        }
-
         binding.cameraSwitchButton.setOnClickListener {
             lensFacing = if (CameraSelector.LENS_FACING_FRONT == lensFacing){
                 CameraSelector.LENS_FACING_BACK
@@ -111,20 +127,78 @@ class MainActivity : BaseActivity() {
             // Re-bind use cases to update selected camera
             bindCameraUseCases()
         }
-        //TODO: change btn into bar style
-        binding.btn1X.setOnClickListener {
-            cameraController?.setZoomRatio(1F)
+
+        binding.btnPreference.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setView(R.layout.fragment_list)
+                .show()
+                .also { alertDialog ->
+                    if(alertDialog==null){
+                        return@also
+                    }
+
+                    val brightRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupBright)
+                    val resolutionRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupResolution)
+                    val zoomRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupZoom)
+
+                    brightRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+                        when (checkedId) {
+                            R.id.radioBtnBright1 -> {
+                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-1)}
+                                Log.d(TAG, "Set exposure compensation index -1")
+                            }
+                            R.id.radioBtnBright2 -> {
+                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(0)}
+                                Log.d(TAG, "Set exposure compensation index to 0")
+                            }
+                            R.id.radioBtnBright3 -> {
+                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(1)}
+                                Log.d(TAG, "Set exposure compensation index to +1")
+                            }
+                        }
+                    }
+
+                    resolutionRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+                        when (checkedId) {
+                            R.id.radioBtnResolution1 -> {
+                                cameraSizeWidth = 1280
+                                cameraSizeHeight = 720
+//                                cameraResolution = AspectRatio.RATIO_16_9
+                                bindCameraUseCases()
+                                Log.d(TAG, "Set aspect ratio 16:9")
+                            }
+
+                            R.id.radioBtnResolution2 -> {
+//                                cameraResolution = AspectRatio.RATIO_4_3
+                                cameraSizeWidth = 640
+                                cameraSizeHeight = 480
+                                bindCameraUseCases()
+                                Log.d(TAG, "Set aspect ratio 4:3")
+                            }
+                        }
+                    }
+
+                    zoomRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+                        when (checkedId) {
+                            R.id.radioBtnZoom1 -> {
+                                cameraController?.setZoomRatio(1F)
+                                Log.d(TAG, "Set zoom ratio x1")
+                            }
+                            R.id.radioBtnZoom2 -> {
+                                cameraController?.setZoomRatio(2F)
+                                Log.d(TAG, "Set zoom ratio x2")
+                            }
+                            R.id.radioBtnZoom3 -> {
+                                cameraController?.setZoomRatio(5F)
+                                Log.d(TAG, "Set zoom ratio x5")
+                            }
+                        }
+                    }
+                }
         }
-        binding.btn2X.setOnClickListener {
-            cameraController?.setZoomRatio(2F)
-        }
-        binding.btn5X.setOnClickListener {
-            cameraController?.setZoomRatio(5F)
-        }
-        binding.btn10X.setOnClickListener {
-            cameraController?.setZoomRatio(8F)
-        }
+
     }
+
 
     private fun takePhoto() {
         // Get a stable reference of the modifiable image capture use case
@@ -158,6 +232,7 @@ class MainActivity : BaseActivity() {
                     }
                 }
             })
+
     }
 
     // viewFinder Setting: Preview
@@ -205,9 +280,9 @@ class MainActivity : BaseActivity() {
     }
 
     private fun newJpgFileName(): String{
-        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss")
+        val sdf = SimpleDateFormat("MMdd_HHmmss")
         val fileName = sdf.format(System.currentTimeMillis())
-        return "${fileName}.jpg"
+        return "${fileName}_${lightValue}.jpg"
     }
     private fun getOutputDirectory(): File {
         val mediaDir = externalMediaDirs.firstOrNull()?.let {
@@ -225,35 +300,22 @@ class MainActivity : BaseActivity() {
         // CameraProvider
         val cameraProvider = cameraProvider
             ?: throw IllegalStateException("Camera initialization failed.")
-        var screenAspectRatio: Int
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val windowMetrics = windowManager.currentWindowMetrics
-            val insets = windowMetrics.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
-            val widthPixels = windowMetrics.bounds.width() - insets.left - insets.right
-            val heightPixels = windowMetrics.bounds.height() - insets.bottom - insets.top
-            screenAspectRatio = aspectRatio(widthPixels, heightPixels)
-            Log.d(TAG, "Screen metrics : $widthPixels x $heightPixels")
-        }else{
-            // Get screen metrics used to setup camera for full screen resolution
-            val metrics = DisplayMetrics().also { binding.viewFinder.display.getRealMetrics(it) }
-            Log.d(TAG, "Screen metrics: ${metrics.widthPixels} x ${metrics.heightPixels}")
-            screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
-        }
-        Log.d(TAG, "screenAspectRatio: $screenAspectRatio")
 
         // CameraSelector
         val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
 
         // Preview
         preview = Preview.Builder()
-//            .setTargetAspectRatio(screenAspectRatio)
+//            .setTargetAspectRatio(cameraResolution)
+            .setTargetResolution(Size(cameraSizeWidth, cameraSizeHeight))
             .build()
             .also {
                 it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
             }
         //ImageCapture
         imageCapture = ImageCapture.Builder()
-//            .setTargetAspectRatio(screenAspectRatio)
+            .setTargetResolution(Size(cameraSizeWidth, cameraSizeHeight))
+//            .setTargetAspectRatio(cameraResolution)
             .build()
         // Must unbind the use-cases before rebinding them
         cameraProvider.unbindAll()
@@ -272,13 +334,6 @@ class MainActivity : BaseActivity() {
             cameraController = camera!!.cameraControl
             cameraInfo = camera!!.cameraInfo
 
-            cameraInfo!!.zoomState.observe(this,androidx.lifecycle.Observer {
-                val currentZoomRatio = it.zoomRatio
-                Log.d(TAG,currentZoomRatio.toString())
-                binding.txtZoomState.text=currentZoomRatio.toString()
-                binding.txtMaxZoom.text=it.maxZoomRatio.toString()
-                binding.txtMinZoom.text=it.minZoomRatio.toString()
-            })
         }catch(exc: Exception){
             Log.d(TAG,"Use case binding failed",exc)
         }
@@ -299,22 +354,6 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    /**
-     *  Detecting the most suitable ratio for dimensions provided in @params by counting absolute
-     *  of preview ratio to one of the provided values.
-     *
-     *  @param width - preview width
-     *  @param height - preview height
-     *  @return suitable aspect ratio
-     */
-    private fun aspectRatio(width: Int, height: Int): Int {
-        val previewRatio = max(width, height).toDouble() / min(width, height)
-        if (abs(previewRatio - RATIO_4_3_VALUE) <= abs(previewRatio - RATIO_16_9_VALUE)) {
-            return AspectRatio.RATIO_4_3
-        }
-        return AspectRatio.RATIO_16_9
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
@@ -322,8 +361,14 @@ class MainActivity : BaseActivity() {
 
     companion object {
         private const val TAG = "CameraX-Debug"
-        private const val RATIO_4_3_VALUE = 4.0 / 3.0
-        private const val RATIO_16_9_VALUE = 16.0 / 9.0
+    }
+
+    override fun onSensorChanged(event: SensorEvent) {
+        lightValue = event.values[0]
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+
     }
 
 }

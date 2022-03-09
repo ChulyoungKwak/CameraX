@@ -5,7 +5,15 @@
       <map>
         <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/drawable-v24/ic_shutter.xml" value="0.344" />
         <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/drawable-v24/ic_switch.xml" value="0.344" />
+        <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/drawable/border_layout.xml" value="0.1955" />
+        <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/drawable/outline_settings_24.xml" value="0.238" />
+        <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/drawable/selector_radio_button.xml" value="0.1955" />
+        <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/drawable/selector_radio_text.xml" value="0.1955" />
+        <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/drawable/shape_circle_button.xml" value="0.1955" />
+        <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/drawable/shape_circle_button_deactive.xml" value="0.1955" />
         <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/layout/activity_main.xml" value="0.22" />
+        <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/layout/activity_preference.xml" value="0.6332703213610587" />
+        <entry key="..\:/Users/Kwak/Desktop/android/tensorflow_tutorial/examples/lite/examples/CameraX/app/src/main/res/layout/fragment_list.xml" value="0.33" />
       </map>
     </option>
   </component>
