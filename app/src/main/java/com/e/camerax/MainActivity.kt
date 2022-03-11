@@ -5,10 +5,15 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.ImageFormat
+import android.graphics.SurfaceTexture
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.params.StreamConfigurationMap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -19,6 +24,7 @@ import android.view.WindowInsets
 import android.widget.ImageButton
 import android.widget.RadioGroup
 import android.widget.Toast
+import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.core.*
 import androidx.camera.core.Camera as Camera
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -38,6 +44,8 @@ import kotlin.math.roundToInt
 class MainActivity : BaseActivity(), SensorEventListener {
     private lateinit var binding: ActivityMainBinding
 
+    lateinit var listFragment: ListFragment
+
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
     private var cameraResolution: Int = AspectRatio.RATIO_4_3
     private var cameraSizeWidth: Int = 1280
@@ -48,6 +56,7 @@ class MainActivity : BaseActivity(), SensorEventListener {
 
     private var preview: Preview? = null
     private var imageCapture: ImageCapture? = null
+    private var imageAnalysis: ImageAnalysis? = null
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
@@ -111,6 +120,36 @@ class MainActivity : BaseActivity(), SensorEventListener {
         requirePermissions(arrayOf(Manifest.permission.CAMERA), PERM_CAMERA)
     }
 
+    fun changeExposure(checkedId: Int){
+        when (checkedId) {
+            R.id.radioBtnBright1 -> {
+                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-2)}
+                Log.d(TAG, "Set exposure compensation index -2")
+            }
+            R.id.radioBtnBright2 -> {
+                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-1)}
+                Log.d(TAG, "Set exposure compensation index to -1")
+            }
+            R.id.radioBtnBright3 -> {
+                cameraInfo?.let{cameraController?.setExposureCompensationIndex(0)}
+                Log.d(TAG, "Set exposure compensation index to 0")
+            }
+
+            R.id.radioBtnBright4 -> {
+                cameraInfo?.let{cameraController?.setExposureCompensationIndex(1)}
+                Log.d(TAG, "Set exposure compensation index to 1")
+            }
+            R.id.radioBtnBright5 -> {
+                cameraInfo?.let{cameraController?.setExposureCompensationIndex(2)}
+                Log.d(TAG, "Set exposure compensation index to +2")
+            }
+        }
+    }
+
+    private fun setFragment(){
+        listFragment.show(supportFragmentManager,"ListFragment")
+    }
+
     private fun openCamera() {
         binding.btnTakePicture.setOnClickListener {
             takePhoto()
@@ -141,68 +180,69 @@ class MainActivity : BaseActivity(), SensorEventListener {
                     val resolutionRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupResolution)
                     val zoomRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupZoom)
 
-                    brightRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-                        when (checkedId) {
-                            R.id.radioBtnBright1 -> {
-                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-2)}
-                                Log.d(TAG, "Set exposure compensation index -2")
-                            }
-                            R.id.radioBtnBright2 -> {
-                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-1)}
-                                Log.d(TAG, "Set exposure compensation index to -1")
-                            }
-                            R.id.radioBtnBright3 -> {
-                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(0)}
-                                Log.d(TAG, "Set exposure compensation index to 0")
-                            }
+//                    brightRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+//                        when (checkedId) {
+//                            R.id.radioBtnBright1 -> {
+//                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-2)}
+//                                Log.d(TAG, "Set exposure compensation index -2")
+//                            }
+//                            R.id.radioBtnBright2 -> {
+//                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-1)}
+//                                Log.d(TAG, "Set exposure compensation index to -1")
+//                            }
+//                            R.id.radioBtnBright3 -> {
+//                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(0)}
+//                                Log.d(TAG, "Set exposure compensation index to 0")
+//                            }
+//
+//                            R.id.radioBtnBright4 -> {
+//                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(1)}
+//                                Log.d(TAG, "Set exposure compensation index to 1")
+//                            }
+//                            R.id.radioBtnBright5 -> {
+//                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(2)}
+//                                Log.d(TAG, "Set exposure compensation index to +2")
+//                            }
+//                        }
+//                    }
+                    setFragment()
+//
+//                    resolutionRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+//                        when (checkedId) {
+//                            R.id.radioBtnResolution1 -> {
+//                                cameraSizeWidth = 720
+//                                cameraSizeHeight = 1280
+////                                cameraResolution = AspectRatio.RATIO_16_9
+//                                bindCameraUseCases()
+//                                Log.d(TAG, "Set aspect ratio 16:9")
+//                            }
+//
+//                            R.id.radioBtnResolution2 -> {
+////                                cameraResolution = AspectRatio.RATIO_4_3
+//                                cameraSizeWidth = 480
+//                                cameraSizeHeight = 640
+//                                bindCameraUseCases()
+//                                Log.d(TAG, "Set aspect ratio 4:3")
+//                            }
+//                        }
+//                    }
 
-                            R.id.radioBtnBright4 -> {
-                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(1)}
-                                Log.d(TAG, "Set exposure compensation index to 1")
-                            }
-                            R.id.radioBtnBright5 -> {
-                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(2)}
-                                Log.d(TAG, "Set exposure compensation index to +2")
-                            }
-                        }
-                    }
-
-                    resolutionRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-                        when (checkedId) {
-                            R.id.radioBtnResolution1 -> {
-                                cameraSizeWidth = 720
-                                cameraSizeHeight = 1280
-//                                cameraResolution = AspectRatio.RATIO_16_9
-                                bindCameraUseCases()
-                                Log.d(TAG, "Set aspect ratio 16:9")
-                            }
-
-                            R.id.radioBtnResolution2 -> {
-//                                cameraResolution = AspectRatio.RATIO_4_3
-                                cameraSizeWidth = 480
-                                cameraSizeHeight = 640
-                                bindCameraUseCases()
-                                Log.d(TAG, "Set aspect ratio 4:3")
-                            }
-                        }
-                    }
-
-                    zoomRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-                        when (checkedId) {
-                            R.id.radioBtnZoom1 -> {
-                                cameraController?.setZoomRatio(1F)
-                                Log.d(TAG, "Set zoom ratio x1")
-                            }
-                            R.id.radioBtnZoom2 -> {
-                                cameraController?.setZoomRatio(2F)
-                                Log.d(TAG, "Set zoom ratio x2")
-                            }
-                            R.id.radioBtnZoom3 -> {
-                                cameraController?.setZoomRatio(5F)
-                                Log.d(TAG, "Set zoom ratio x5")
-                            }
-                        }
-                    }
+//                    zoomRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+//                        when (checkedId) {
+//                            R.id.radioBtnZoom1 -> {
+//                                cameraController?.setZoomRatio(1F)
+//                                Log.d(TAG, "Set zoom ratio x1")
+//                            }
+//                            R.id.radioBtnZoom2 -> {
+//                                cameraController?.setZoomRatio(2F)
+//                                Log.d(TAG, "Set zoom ratio x2")
+//                            }
+//                            R.id.radioBtnZoom3 -> {
+//                                cameraController?.setZoomRatio(5F)
+//                                Log.d(TAG, "Set zoom ratio x5")
+//                            }
+//                        }
+//                    }
                 }
         }
 
@@ -327,6 +367,9 @@ class MainActivity : BaseActivity(), SensorEventListener {
 //            .setTargetAspectRatio(cameraResolution)
             .build()
         // Must unbind the use-cases before rebinding them
+        imageAnalysis = ImageAnalysis.Builder()
+            .build()
+
         cameraProvider.unbindAll()
 
         try{
@@ -335,13 +378,29 @@ class MainActivity : BaseActivity(), SensorEventListener {
                 this,
                 cameraSelector,
                 preview,
-                imageCapture)
+                imageCapture,
+                imageAnalysis)
 
             // Update the EV slider UI according to the CameraInfo
             binding.slider.setup(camera!!)
 
             cameraController = camera!!.cameraControl
             cameraInfo = camera!!.cameraInfo
+            val cameraId = Camera2CameraInfo.from(camera!!.cameraInfo).cameraId
+            val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+            val configs: StreamConfigurationMap? = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+
+            val imageAnalysisSize = configs?.getOutputSizes(ImageFormat.YUV_420_888)
+            imageAnalysisSize?.forEach {
+                Log.i(TAG, "Image capturing YUV_420_888 available output size: $it")
+            }
+
+            val previewSizes = configs?.getOutputSizes(SurfaceTexture::class.java)
+            previewSizes?.forEach{
+                Log.i(TAG, "Preview available output size: $it")
+            }
+
 
         }catch(exc: Exception){
             Log.d(TAG,"Use case binding failed",exc)
