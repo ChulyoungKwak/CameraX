@@ -41,10 +41,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class MainActivity : BaseActivity(), SensorEventListener {
+class MainActivity : BaseActivity(), SensorEventListener, CustomDialog.OnCameraEventListener {
     private lateinit var binding: ActivityMainBinding
 
-    lateinit var listFragment: ListFragment
+    private lateinit var customDialog: CustomDialog
+    private var compensationIndex: Int = 0
+    private var zoomIndex:Int = 0
+    private var resolutionIndex:Int = 0
 
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
     private var cameraResolution: Int = AspectRatio.RATIO_4_3
@@ -120,7 +123,7 @@ class MainActivity : BaseActivity(), SensorEventListener {
         requirePermissions(arrayOf(Manifest.permission.CAMERA), PERM_CAMERA)
     }
 
-    fun changeExposure(checkedId: Int){
+    override fun onBrightChange(checkedId: Int){
         when (checkedId) {
             R.id.radioBtnBright1 -> {
                 cameraInfo?.let{cameraController?.setExposureCompensationIndex(-2)}
@@ -147,7 +150,7 @@ class MainActivity : BaseActivity(), SensorEventListener {
     }
 
     private fun setFragment(){
-        listFragment.show(supportFragmentManager,"ListFragment")
+        customDialog.show(supportFragmentManager,"DialogFragment")
     }
 
     private fun openCamera() {
@@ -167,18 +170,22 @@ class MainActivity : BaseActivity(), SensorEventListener {
             bindCameraUseCases()
         }
 
-        binding.btnPreference.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setView(R.layout.fragment_list)
-                .show()
-                .also { alertDialog ->
-                    if(alertDialog==null){
-                        return@also
-                    }
+        customDialog = CustomDialog().apply {
+            this.listener = this@MainActivity
+        }
 
-                    val brightRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupBright)
-                    val resolutionRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupResolution)
-                    val zoomRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupZoom)
+        binding.btnPreference.setOnClickListener {setFragment()}
+//            AlertDialog.Builder(this)
+//                .setView(R.layout.fragment_list)
+//                .show()
+//                .also { alertDialog ->
+//                    if(alertDialog==null){
+//                        return@also
+//                    }
+//
+//                    val brightRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupBright)
+//                    val resolutionRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupResolution)
+//                    val zoomRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupZoom)
 
 //                    brightRadioGroup.setOnCheckedChangeListener { _, checkedId ->
 //                        when (checkedId) {
@@ -205,7 +212,7 @@ class MainActivity : BaseActivity(), SensorEventListener {
 //                            }
 //                        }
 //                    }
-                    setFragment()
+
 //
 //                    resolutionRadioGroup.setOnCheckedChangeListener { _, checkedId ->
 //                        when (checkedId) {
@@ -243,8 +250,8 @@ class MainActivity : BaseActivity(), SensorEventListener {
 //                            }
 //                        }
 //                    }
-                }
-        }
+//                }
+//        }
 
     }
 
@@ -367,8 +374,8 @@ class MainActivity : BaseActivity(), SensorEventListener {
 //            .setTargetAspectRatio(cameraResolution)
             .build()
         // Must unbind the use-cases before rebinding them
-        imageAnalysis = ImageAnalysis.Builder()
-            .build()
+//        imageAnalysis = ImageAnalysis.Builder()
+//            .build()
 
         cameraProvider.unbindAll()
 
@@ -379,27 +386,28 @@ class MainActivity : BaseActivity(), SensorEventListener {
                 cameraSelector,
                 preview,
                 imageCapture,
-                imageAnalysis)
+//                imageAnalysis
+            )
 
             // Update the EV slider UI according to the CameraInfo
             binding.slider.setup(camera!!)
 
             cameraController = camera!!.cameraControl
             cameraInfo = camera!!.cameraInfo
-            val cameraId = Camera2CameraInfo.from(camera!!.cameraInfo).cameraId
-            val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-            val characteristics = cameraManager.getCameraCharacteristics(cameraId)
-            val configs: StreamConfigurationMap? = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-
-            val imageAnalysisSize = configs?.getOutputSizes(ImageFormat.YUV_420_888)
-            imageAnalysisSize?.forEach {
-                Log.i(TAG, "Image capturing YUV_420_888 available output size: $it")
-            }
-
-            val previewSizes = configs?.getOutputSizes(SurfaceTexture::class.java)
-            previewSizes?.forEach{
-                Log.i(TAG, "Preview available output size: $it")
-            }
+//            val cameraId = Camera2CameraInfo.from(camera!!.cameraInfo).cameraId
+//            val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+//            val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+//            val configs: StreamConfigurationMap? = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+//
+//            val imageAnalysisSize = configs?.getOutputSizes(ImageFormat.YUV_420_888)
+//            imageAnalysisSize?.forEach {
+//                Log.i(TAG, "Image capturing YUV_420_888 available output size: $it")
+//            }
+//
+//            val previewSizes = configs?.getOutputSizes(SurfaceTexture::class.java)
+//            previewSizes?.forEach{
+//                Log.i(TAG, "Preview available output size: $it")
+//            }
 
 
         }catch(exc: Exception){

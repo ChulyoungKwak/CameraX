@@ -20,7 +20,9 @@ private const val ARG_PARAM2 = "param2"
  * Use the [ListFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class ListFragment : DialogFragment() {
+class CustomDialog : DialogFragment() {
+    var listener: OnCameraEventListener? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -28,13 +30,21 @@ class ListFragment : DialogFragment() {
         // Inflate the layout for this fragment
         val binding = FragmentListBinding.inflate(inflater, container, false)
         binding.radioGroupBright.setOnCheckedChangeListener { _, checkedId ->
-            mainActivity.changeExposure(checkedId)}
-
+            Log.d("Dialog", "catch changeListener")
+            listener?.onBrightChange(checkedId)
+        }
         return binding.root
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        mainActivity = context as MainActivity
+    override fun onStart() {
+        super.onStart()
+        val width = (resources.displayMetrics.widthPixels * 0.8).toInt()
+        val height = (resources.displayMetrics.heightPixels * 0.50).toInt()
+        Log.d("Dialog", "Make layout")
+        dialog!!.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
+    interface OnCameraEventListener {
+        fun onBrightChange(checkedId: Int)
     }
 }
