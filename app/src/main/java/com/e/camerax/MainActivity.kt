@@ -149,6 +149,43 @@ class MainActivity : BaseActivity(), SensorEventListener, CustomDialog.OnCameraE
         }
     }
 
+    override fun onZoomChange(checkedId: Int){
+        when (checkedId) {
+            R.id.radioBtnZoom1 -> {
+                cameraController?.setZoomRatio(1F)
+                Log.d(TAG, "Set zoom ratio x1")
+            }
+            R.id.radioBtnZoom2 -> {
+                cameraController?.setZoomRatio(2F)
+                Log.d(TAG, "Set zoom ratio x2")
+            }
+            R.id.radioBtnZoom3 -> {
+                cameraController?.setZoomRatio(5F)
+                Log.d(TAG, "Set zoom ratio x5")
+            }
+        }
+    }
+
+    override fun onResolutionChange(checkedId: Int) {
+        when (checkedId) {
+            R.id.radioBtnResolution1 -> {
+                cameraSizeWidth = 720
+                cameraSizeHeight = 1280
+//                                cameraResolution = AspectRatio.RATIO_16_9
+                bindCameraUseCases()
+                Log.d(TAG, "Set aspect ratio 16:9")
+            }
+
+            R.id.radioBtnResolution2 -> {
+//                                cameraResolution = AspectRatio.RATIO_4_3
+                cameraSizeWidth = 480
+                cameraSizeHeight = 640
+                bindCameraUseCases()
+                Log.d(TAG, "Set aspect ratio 4:3")
+            }
+        }
+    }
+
     private fun setFragment(){
         customDialog.show(supportFragmentManager,"DialogFragment")
     }
@@ -175,84 +212,6 @@ class MainActivity : BaseActivity(), SensorEventListener, CustomDialog.OnCameraE
         }
 
         binding.btnPreference.setOnClickListener {setFragment()}
-//            AlertDialog.Builder(this)
-//                .setView(R.layout.fragment_list)
-//                .show()
-//                .also { alertDialog ->
-//                    if(alertDialog==null){
-//                        return@also
-//                    }
-//
-//                    val brightRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupBright)
-//                    val resolutionRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupResolution)
-//                    val zoomRadioGroup = alertDialog.findViewById<RadioGroup>(R.id.radioGroupZoom)
-
-//                    brightRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-//                        when (checkedId) {
-//                            R.id.radioBtnBright1 -> {
-//                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-2)}
-//                                Log.d(TAG, "Set exposure compensation index -2")
-//                            }
-//                            R.id.radioBtnBright2 -> {
-//                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(-1)}
-//                                Log.d(TAG, "Set exposure compensation index to -1")
-//                            }
-//                            R.id.radioBtnBright3 -> {
-//                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(0)}
-//                                Log.d(TAG, "Set exposure compensation index to 0")
-//                            }
-//
-//                            R.id.radioBtnBright4 -> {
-//                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(1)}
-//                                Log.d(TAG, "Set exposure compensation index to 1")
-//                            }
-//                            R.id.radioBtnBright5 -> {
-//                                cameraInfo?.let{cameraController?.setExposureCompensationIndex(2)}
-//                                Log.d(TAG, "Set exposure compensation index to +2")
-//                            }
-//                        }
-//                    }
-
-//
-//                    resolutionRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-//                        when (checkedId) {
-//                            R.id.radioBtnResolution1 -> {
-//                                cameraSizeWidth = 720
-//                                cameraSizeHeight = 1280
-////                                cameraResolution = AspectRatio.RATIO_16_9
-//                                bindCameraUseCases()
-//                                Log.d(TAG, "Set aspect ratio 16:9")
-//                            }
-//
-//                            R.id.radioBtnResolution2 -> {
-////                                cameraResolution = AspectRatio.RATIO_4_3
-//                                cameraSizeWidth = 480
-//                                cameraSizeHeight = 640
-//                                bindCameraUseCases()
-//                                Log.d(TAG, "Set aspect ratio 4:3")
-//                            }
-//                        }
-//                    }
-
-//                    zoomRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-//                        when (checkedId) {
-//                            R.id.radioBtnZoom1 -> {
-//                                cameraController?.setZoomRatio(1F)
-//                                Log.d(TAG, "Set zoom ratio x1")
-//                            }
-//                            R.id.radioBtnZoom2 -> {
-//                                cameraController?.setZoomRatio(2F)
-//                                Log.d(TAG, "Set zoom ratio x2")
-//                            }
-//                            R.id.radioBtnZoom3 -> {
-//                                cameraController?.setZoomRatio(5F)
-//                                Log.d(TAG, "Set zoom ratio x5")
-//                            }
-//                        }
-//                    }
-//                }
-//        }
-
     }
 
 

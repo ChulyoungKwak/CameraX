@@ -30,8 +30,13 @@ class CustomDialog : DialogFragment() {
         // Inflate the layout for this fragment
         val binding = FragmentListBinding.inflate(inflater, container, false)
         binding.radioGroupBright.setOnCheckedChangeListener { _, checkedId ->
-            Log.d("Dialog", "catch changeListener")
             listener?.onBrightChange(checkedId)
+        }
+        binding.radioGroupResolution.setOnCheckedChangeListener { _, checkedId ->
+            listener?.onResolutionChange(checkedId)
+        }
+        binding.radioGroupZoom.setOnCheckedChangeListener { _, checkedId ->
+            listener?.onZoomChange(checkedId)
         }
         return binding.root
     }
@@ -46,5 +51,7 @@ class CustomDialog : DialogFragment() {
 
     interface OnCameraEventListener {
         fun onBrightChange(checkedId: Int)
+        fun onZoomChange(checkedId: Int)
+        fun onResolutionChange(checkedId: Int)
     }
 }
